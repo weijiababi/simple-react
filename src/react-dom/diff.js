@@ -20,24 +20,19 @@ export function diff(vnode, dom, container) {
  * @param {真实dom} dom
  * @param {vnode} vnode
  * @returns
- * 根据输入的真实dom节点和vnode节点进行比对，最后输出比对结果（真实dom）提供渲染
+ * 根据输入的真实dom节点和vnode节点进行比对，若dom为空，则直接输出结果提供渲染，若dom不为空，则在
+ * dom上进行操作，并最终返回渲染结果
  */
 export function diffNode(dom, vnode) {
   let out = dom
-  let vnodeClone = vnode
-
-  // 当前dom为空，则直接输出一个真实dom提供渲染
-  if (isNil(dom)) {
-    return getActualDom(vnode)
-  }
 
   if (isNil(vnode) || typeof vnode === 'boolean') {
-    vnodeClone = ''
+    return null
   }
 
   // 虚拟节点为字符串，直接比对并返回
   if (typeof vnode === 'string' || typeof vnode === 'number') {
-    vnodeClone = String(vnode)
+    let vnodeClone = String(vnode)
     out = document.createTextNode(vnodeClone) // 最终无论结果如何，输出都会是新字符节点
 
     // 原节点为字符节点
@@ -59,7 +54,8 @@ export function diffNode(dom, vnode) {
   }
 
   // 虚拟节点为组件，比对类型，直接返回比对结果（同类型则更新，否则卸载再挂载新组件）
-  if (typeof vnode.tag === 'function') {
+  // 之所以要加上isNil(dom)的情况，是因为组件切换的情况下，dom也可能出现null
+  if (typeof vnode.tag === 'function' || isNil(dom)) {
     return diffComponent(dom, vnode)
   }
 
@@ -77,6 +73,7 @@ export function diffNode(dom, vnode) {
     }
   }
 
+  // 当vnode跟dom节点均有children，则需要递归遍历比对子节点
   if (
     (out.childNodes && out.childNodes.length > 0) ||
     (vnode.children && vnode.children.length > 0)
@@ -95,7 +92,7 @@ export function diffChildren(out, vnode) {
 
   for (let i = 0; i < domChildren.length; i++) {
     let child = domChildren[i]
-    let key = child.key
+    let key = !isNil(child) && child.key
     if (isNil(key)) {
       children.push(child)
     } else {
@@ -110,34 +107,41 @@ export function diffChildren(out, vnode) {
       let correspondChild // 对应vnode的dom child
 
       let vChild = vChildren[i]
-      let key = vChild && vChild.key
+      let key = !isNil(vChild) && vChild.key
+
       if (!isNil(key)) {
         correspondChild = !isNil(keyed[key]) ? keyed[key] : null
         keyed[key] = null
       } else if (min < childrenLength) {
         for (let j = min; j < childrenLength; j++) {
+          /**
+           *基本diffChildren的执行底层都是走到这一步，而此时c及vChild的类型都为文本，故*isSameNodeType(c, vChild)为false，会直接到下一步diffNode(underfined, vChild)输出文本
+           *比对结果
+           */
           let c = children[j]
-          if (!isNil(c) && isSameNodeType(c, vChild)) {
-            correspondChild = c
-            children[j] = null
-            // 如果是在头部找到，则首可以增一，因为下次遍历头部是无效的
-            if (j === min) {
-              min++
+          if (!isNil(c)) {
+            if (isSameNodeType(c, vChild) || !isNil(vChild)) {
+              correspondChild = c
+              children[j] = null
+              // 如果是在头部找到，则首可以增一，因为下次遍历头部是无效的
+              if (j === min) {
+                min++
+              }
+              // 如果是在末尾找到，则尾可以减一，因为下次遍历至最尾也是无效的
+              if (j === childrenLength - 1) {
+                childrenLength--
+              }
+              break
             }
-            // 如果是在末尾找到，则尾可以减一，因为下次遍历至最尾也是无效的
-            if (j === childrenLength - 1) {
-              childrenLength--
-            }
-            break
           }
         }
       }
-
       let resultChild = diffNode(correspondChild, vChild)
+
       let oldDomChild = domChildren[i]
       if (!isSameDom(resultChild, oldDomChild)) {
         // 原先位置为空，直接插入节点
-        if (isNil(oldDomChild)) {
+        if (isNil(oldDomChild) && !isNil(resultChild)) {
           out.appendChild(resultChild)
         } else if (!resultChild || resultChild === oldDomChild.nextSibling) {
           removeNode(oldDomChild)
@@ -150,7 +154,7 @@ export function diffChildren(out, vnode) {
 }
 
 export function diffComponent(dom, vnode) {
-  let component = dom ? dom._component : null
+  let component = !isNil(dom) ? dom._component : null
 
   // 相同类型组件,直接更新渲染即可
   if (!isNil(component) && component.constructor === vnode.tag) {
@@ -164,6 +168,8 @@ export function diffComponent(dom, vnode) {
    */
   if (!isNil(component) && component.constructor !== vnode.tag) {
     unmountComponent(component)
-    return getActualDom(vnode)
   }
+  return getActualDom(vnode)
 }
+
+export function diffAttributes(dom, vnode) {}

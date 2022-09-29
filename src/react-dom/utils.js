@@ -3,9 +3,28 @@ export function isNil(value) {
 }
 
 export function isSameNodeType(dom, vnode) {
-  if (!isNil(vnode) && vnode.tag && typeof vnode.tag === 'string') {
+  if (typeof vnode === 'string' || typeof vnode === 'number') {
+    return dom.nodeType === 3
+  }
+
+  if (
+    !isNil(dom) &&
+    !isNil(vnode) &&
+    vnode.tag &&
+    typeof vnode.tag === 'string'
+  ) {
     return vnode.tag.toLowerCase() === dom.nodeName.toLowerCase()
   }
+
+  if (
+    !isNil(dom) &&
+    !isNil(vnode) &&
+    vnode.tag &&
+    typeof vnode.tag === 'function'
+  ) {
+    return dom && dom._component && dom._component.constructor === vnode.tag
+  }
+  return false
 }
 
 export function isSameDom(newDom, oldDom) {

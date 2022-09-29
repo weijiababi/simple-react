@@ -39,7 +39,7 @@ export function createComponent(fn, attrs) {
     inst.constructor = fn
     inst.isReactComponent = false
     inst.render = function () {
-      return this.constructor(attrs) // 直接输出函数组件的返回值
+      return this.constructor(this.props) // 直接输出函数组件的返回值
     }
   }
   return inst
@@ -50,7 +50,6 @@ export function setComponentProps(component, props) {
   if (component.isReactComponent && component.componentWillReceiveProps) {
     component.componentWillReceiveProps(props)
   }
-
   component.props = props
   updateComponent(component)
 }
@@ -72,7 +71,6 @@ export function beforeRenderComponent(component) {
 export function renderComponent(component) {
   let base
   const renderDom = component.render()
-
   base = diffNode(component.base, renderDom)
 
   // 完成渲染过程，将当前节点内容存储在component上
@@ -114,6 +112,7 @@ export function unmountComponent(component) {
   if (component.base && component.base.parentNode) {
     component.base.parentNode.removeChild(component.base)
   }
+  component.isMounted = false
   component = null
 }
 
