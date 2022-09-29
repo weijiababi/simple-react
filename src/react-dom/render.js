@@ -26,7 +26,7 @@ export function getActualDom(vnode) {
 
   const dom = document.createElement(vnode.tag)
 
-  if (vnode.attrs) {
+  if (!isNil(vnode.attrs)) {
     Object.keys(vnode.attrs).forEach((key) => {
       const value = vnode.attrs[key]
       setAttribute(dom, key, value)

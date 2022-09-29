@@ -9,6 +9,7 @@ class Element {
 
 function createElement(tag, attrs, ...children) {
   attrs = attrs || {}
+  children = children.flat(1)
   return new Element(tag, attrs, children, attrs.key)
 }
 

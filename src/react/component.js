@@ -1,4 +1,5 @@
 import { diffNode } from '../react-dom/diff.js'
+import { isNil } from '../react-dom/utils.js'
 
 class Component {
   constructor(props = {}) {
@@ -33,13 +34,31 @@ export function createComponent(fn, attrs) {
   if (fn.prototype && fn.prototype.render) {
     inst = new fn(attrs)
     inst.isReactComponent = true
+
+    let instRender = inst.render.bind(inst)
+    inst.render = function () {
+      const element = instRender()
+      if (!isNil(attrs.key)) {
+        element.key = attrs.key
+        element.attrs.key = attrs.key
+      }
+      return element
+    }
     // 非类定义组件，为函数组件，需要转为类定义组件
   } else {
     inst = new Component(attrs)
     inst.constructor = fn
     inst.isReactComponent = false
     inst.render = function () {
-      return this.constructor(this.props) // 直接输出函数组件的返回值
+      /**
+       * 非状态组件可能外部传入key，此时需要手动将key绑定给element及attrs上
+       */
+      const element = this.constructor(this.props)
+      if (!isNil(this.props.key)) {
+        element.key = this.props.key
+        element.attrs.key = this.props.key
+      }
+      return element // 直接输出函数组件的返回值
     }
   }
   return inst

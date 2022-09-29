@@ -1,3 +1,5 @@
+import { isDom } from './utils'
+
 /**
  *
  * @param {目标dom节点} dom
@@ -5,8 +7,13 @@
  * @param {节点attr key值} value
  * @returns
  */
+
 // 判断key名并给目标dom节点添加属性
 export function setAttribute(dom, key, value) {
+  if (!isDom(dom)) {
+    return
+  }
+
   // 类名
   if (key === 'className') {
     dom.setAttribute('class', value)

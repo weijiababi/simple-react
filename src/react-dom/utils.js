@@ -39,3 +39,15 @@ export function removeNode(dom) {
     dom.parentNode.removeChild(dom)
   }
 }
+
+export function isDom(dom) {
+  if (typeof HTMLElement === 'object') {
+    return dom instanceof HTMLElement
+  }
+  return (
+    !isNil(dom) &&
+    typeof dom === 'object' &&
+    dom.nodeType === 1 &&
+    typeof dom.nodeName === 'string'
+  )
+}

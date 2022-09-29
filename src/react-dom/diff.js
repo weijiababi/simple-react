@@ -1,6 +1,7 @@
 import { setComponentProps, unmountComponent } from '../react/component.js'
 import { getActualDom } from './render.js'
-import { isNil, isSameDom, isSameNodeType, removeNode } from './utils'
+import { isNil, isSameDom, isSameNodeType, removeNode, isDom } from './utils'
+import { setAttribute } from './dom.js'
 /**
  *
  * @param {虚拟节点} vnode
@@ -81,6 +82,8 @@ export function diffNode(dom, vnode) {
     diffChildren(out, vnode)
   }
 
+  diffAttributes(out, vnode)
+
   return out
 }
 
@@ -92,7 +95,7 @@ export function diffChildren(out, vnode) {
 
   for (let i = 0; i < domChildren.length; i++) {
     let child = domChildren[i]
-    let key = !isNil(child) && child.key
+    let key = !isNil(child) && isDom(child) ? child.getAttribute('key') : null
     if (isNil(key)) {
       children.push(child)
     } else {
@@ -111,7 +114,6 @@ export function diffChildren(out, vnode) {
 
       if (!isNil(key)) {
         correspondChild = !isNil(keyed[key]) ? keyed[key] : null
-        keyed[key] = null
       } else if (min < childrenLength) {
         for (let j = min; j < childrenLength; j++) {
           /**
@@ -172,4 +174,34 @@ export function diffComponent(dom, vnode) {
   return getActualDom(vnode)
 }
 
-export function diffAttributes(dom, vnode) {}
+export function diffAttributes(dom, vnode) {
+  const newAttrs = vnode.attrs
+  const oldAttrsMap = dom.attributes
+  const oldAttrs = {}
+
+  for (let i in oldAttrsMap) {
+    const attr = oldAttrsMap[i]
+    if (!isNil(attr.value) && !isNil(attr.name)) {
+      let attrName = attr.name === 'class' ? 'className' : attr.name
+      oldAttrs[attrName] = attr.value
+    }
+  }
+
+  for (let name in oldAttrs) {
+    if (!(name in newAttrs)) {
+      setAttribute(dom, name, null)
+    }
+  }
+
+  for (let name in newAttrs) {
+    let oldAttrsValue = oldAttrs[name]
+    let newAttrsValue =
+      typeof newAttrs[name] === 'number'
+        ? String(newAttrs[name])
+        : newAttrs[name]
+
+    if (oldAttrsValue !== newAttrsValue) {
+      setAttribute(dom, name, newAttrs[name])
+    }
+  }
+}

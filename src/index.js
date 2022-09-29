@@ -6,6 +6,7 @@ class Counter extends React.Component {
     super(props)
     this.state = {
       count: 0,
+      list: [1],
     }
   }
 
@@ -19,7 +20,7 @@ class Counter extends React.Component {
     return (
       <div>
         <button onClick={() => this.add()}>click</button>
-        <Third name={this.state.count} />
+        <First name={this.state.count} />
       </div>
     )
   }
@@ -31,7 +32,7 @@ class First extends React.Component {
   }
 
   render() {
-    return <div>first</div>
+    return <div>{this.props.name}</div>
   }
 }
 class Second extends React.Component {
@@ -45,11 +46,9 @@ class Second extends React.Component {
 }
 
 function Third(props) {
-  return <div>{props.name}</div>
-}
-
-function Fourth() {
-  return <div>fourth</div>
+  return (
+    <div className={props.name % 2 === 0 ? 'odd' : 'odd'}>{props.name}</div>
+  )
 }
 
 ReactDOM.render(<Counter name="counter" />, document.querySelector('#root'))
