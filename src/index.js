@@ -16,6 +16,16 @@ class Counter extends React.Component {
     })
   }
 
+  componentDidMount() {
+    for (let i = 0; i < 100; i++) {
+      this.setState((preState) => {
+        return {
+          count: preState.count + 1,
+        }
+      })
+    }
+  }
+
   render() {
     return (
       <div>
@@ -34,21 +44,6 @@ class First extends React.Component {
   render() {
     return <div>{this.props.name}</div>
   }
-}
-class Second extends React.Component {
-  constructor(props) {
-    super(props)
-  }
-
-  render() {
-    return <div>second</div>
-  }
-}
-
-function Third(props) {
-  return (
-    <div className={props.name % 2 === 0 ? 'odd' : 'odd'}>{props.name}</div>
-  )
 }
 
 ReactDOM.render(<Counter name="counter" />, document.querySelector('#root'))

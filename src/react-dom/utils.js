@@ -51,3 +51,11 @@ export function isDom(dom) {
     typeof dom.nodeName === 'string'
   )
 }
+
+export function isEmptyObject(obj) {
+  return isNil(obj) || Object.keys(obj).length === 0
+}
+
+export function defer(fn) {
+  return Promise.resolve().then(fn)
+}

@@ -1,16 +1,18 @@
 import { diffNode } from '../react-dom/diff.js'
 import { isNil } from '../react-dom/utils.js'
+import { enqueueState } from './queue'
 
 class Component {
   constructor(props = {}) {
     this.state = {}
+    this.preState = {}
     this.props = props
     this.isReactComponent = true
     this.isMounted = false
   }
 
   setState(changedState) {
-    updateComponent(this, changedState)
+    enqueueState(this, changedState)
   }
 
   render() {}
