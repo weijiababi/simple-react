@@ -11,19 +11,14 @@ class Counter extends React.Component {
   }
 
   add() {
-    this.setState({
-      count: this.state.count + 1,
-    })
-  }
-
-  componentDidMount() {
-    for (let i = 0; i < 100; i++) {
-      this.setState((preState) => {
-        return {
-          count: preState.count + 1,
-        }
-      })
-    }
+    this.setState(
+      {
+        count: this.state.count + 1,
+      },
+      (state) => {
+        console.log(state)
+      }
+    )
   }
 
   render() {

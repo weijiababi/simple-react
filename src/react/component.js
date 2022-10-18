@@ -11,8 +11,8 @@ class Component {
     this.isMounted = false
   }
 
-  setState(changedState) {
-    enqueueState(this, changedState)
+  setState(changedState, callback) {
+    enqueueState(this, changedState, callback)
   }
 
   render() {}

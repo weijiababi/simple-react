@@ -1,12 +1,16 @@
 import { isEmptyObject, defer } from '../react-dom/utils'
-import { renderComponent } from './component.js'
+import {
+  beforeRenderComponent,
+  renderComponent,
+  afterRenderComponent,
+} from './component.js'
 
 const stateQueue = []
 const renderQueue = []
 
-export function enqueueState(component, stateChange) {
+export function enqueueState(component, stateChange, callback) {
   if (stateQueue.length === 0) {
-    defer(flush)
+    defer(flush.bind(null, callback))
   }
 
   stateQueue.push({
@@ -19,9 +23,10 @@ export function enqueueState(component, stateChange) {
   }
 }
 
-export function flush() {
+export function flush(callback) {
   let item
   let renderCom
+  // 以队列的形式，从头部一个一个取出
   while ((item = stateQueue.shift())) {
     const { component, stateChange } = item
     if (isEmptyObject(component.preState)) {
@@ -38,9 +43,15 @@ export function flush() {
     }
 
     component.preState = component.state
+
+    if (typeof callback === 'function') {
+      callback(component.state)
+    }
   }
 
   while ((renderCom = renderQueue.shift())) {
+    beforeRenderComponent(renderCom)
     renderComponent(renderCom)
+    afterRenderComponent(renderCom)
   }
 }
